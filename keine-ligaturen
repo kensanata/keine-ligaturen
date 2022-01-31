@@ -8,6 +8,7 @@ use Modern::Perl;
 use open qw(:utf8 :std);
 use utf8;
 
+my $re;
 my %replace;
 my @exceptions;
 
@@ -24,12 +25,16 @@ sub parse_selnolig_data {
       push(@exceptions, $str =~ /(\w+)/g);
     }
   }
+  # use ligatures for ft
+  delete $replace{ft};
+  $re = join('|', keys(%replace));
 }
 
 sub nolig {
   my $word = shift;
   my $i = 0;
   my @ex;
+  return $word unless $word =~ /$re/;
   for my $re (@exceptions) {
     $word =~ s/($re)/push(@ex, $1); "\x{1e}" . $i++ . "\x{1e}";/ge;
   }
