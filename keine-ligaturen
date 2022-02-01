@@ -49,7 +49,7 @@ parse_selnolig_data();
 
 while (<STDIN>) {
   s/(\w+)/nolig($1)/ge;
-  say;
+  print;
 }
 
 __DATA__
