@@ -12,7 +12,7 @@ appropriate replacements.
 
 Example usage:
 
-```
+```sh
 keine-ligaturen < example.md | markdown > example.html
 ```
 
