@@ -15,10 +15,19 @@ my @exceptions;
 sub parse_selnolig_data {
   local $/ = undef;
   my $data = <DATA>;
+  $data =~ s/%.*//g;
   while ($data =~ /\\(?:(nolig)\{(.*?)\}\{(.*?)\}|(keeplig)\{(.*?)\})/gs) {
     if ($1) {
-      $replace{$2} = $3;
-      $replace{$2} =~ s/\|/\x{200c}/;
+      my ($from, $to, $str) = ($2, $3, $3);
+      # example: \nolig{Auff[aeiloruyäöü]}{Auf|f}
+      # note how the fifth letter is not part of $to!
+      $to =~ s/\|/\x{200c}/;
+      if ($from =~ /(\[.*?\])/) {
+	my $ch = $1;
+	# turn it into Auff([aeiloruyäöü]) → Auf\x{200c}f$1
+	$from =~ s/(\[.*?\])/($1)/;
+      }
+      $replace{$from} = $to;
     } else {
       my $str = $5;
       $str =~ s/%.*//g;
@@ -39,9 +48,9 @@ sub nolig {
     $word =~ s/($re)/push(@ex, $1); "\x{1e}" . $i++ . "\x{1e}";/ge;
   }
   for my $re (keys %replace) {
-    $word =~ s/($re)/$replace{$re}/ge;
+    $word =~ s/$re/$replace{$re} . ($1||'')/ge;
   }
-  $word =~ s/\x{1e}(\d)\x{1e}/$ex[$1]/ge;
+  $word =~ s/\x{1e}(\d)\x{1e}/$ex[$1]/g;
   return $word;
 }
 
